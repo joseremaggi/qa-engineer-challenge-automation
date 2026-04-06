@@ -1,0 +1,18 @@
+services:
+  tests-desktop:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - TARGET=desktop
+    command: npm run test:desktop:all-suites
+
+  tests-mobile:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - TARGET=mobile
+    command: npm run test:mobile:all-suites
