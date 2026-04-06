@@ -2,11 +2,11 @@
 
 This repository includes:
 
-- Manual use cases and manual test cases.
+- A consolidated challenge document in `docs/QA Engineer Challenge.pdf` (manual test cases, bug reports, and release test plan).
 - Automated UI tests implemented with `WebdriverIO + TypeScript`.
 - CI/CD workflows using GitHub Actions (E2E + bug regressions).
 - A `docker-compose.yml` bonus setup to run tests independent of the host OS.
-- A release test plan for the `Create` and `Edit` features.
+- An implementation guide for the automation framework in `docs/implementation-guide-webdriverio.md`.
 
 ## Target Application
 
@@ -25,8 +25,8 @@ This repository includes:
 ```text
 .
 ├── docs
-│   ├── release-test-plan-create-edit.md
-│   └── use-cases-and-manual-test-cases.md
+│   ├── QA Engineer Challenge.pdf
+│   └── implementation-guide-webdriverio.md
 ├── test
 │   ├── fixtures
 │   │   ├── test-image.jpg
