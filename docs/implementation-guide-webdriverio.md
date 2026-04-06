@@ -181,18 +181,25 @@ Keep deterministic upload files in `test/fixtures/` (for example `test-image.jpg
 
 ## 12. CI/CD Pipeline (GitHub Actions)
 
-Workflow file: `.github/workflows/e2e.yml`
+Workflow files:
 
-Recommended steps:
+- `.github/workflows/e2e.yml`
+  - Trigger: `push`, `pull_request`, `workflow_dispatch`
+  - Scope: CRUD E2E suite
+  - Matrix targets: `desktop`, `mobile` (Chrome emulation)
+- `.github/workflows/bugs.yml`
+  - Trigger: `workflow_dispatch`
+  - Scope: bug-regression suite
+  - Matrix targets: `desktop`, `mobile` (Chrome emulation)
+
+Recommended pipeline steps for both workflows:
 
 1. checkout
 2. Node setup
 3. Chrome setup
 4. `npm ci`
 5. `npm run typecheck`
-6. matrix run:
-   - `desktop`
-   - `mobile` (Chrome emulation)
+6. run suite by matrix target
 7. generate/upload Allure artifacts
 
 This satisfies the challenge CI/CD requirement for automated test execution.
@@ -219,6 +226,17 @@ Recommended local checks before submission:
 2. `npm run test:all`
 3. `npm run test:bugs:all`
 4. `npm run allure:generate` (optional visual report)
+
+### 14.1 Allure report hygiene
+
+When switching between suites or targets, clean previous artifacts first:
+
+```bash
+rm -rf allure-results allure-report
+```
+
+If desktop + mobile run in the same batch, Allure can aggregate both executions under the same test name.
+For platform-specific evidence, generate separate reports per target.
 
 ## 15. Important WebdriverIO Notes
 

@@ -4,7 +4,7 @@ This repository includes:
 
 - Manual use cases and manual test cases.
 - Automated UI tests implemented with `WebdriverIO + TypeScript`.
-- A CI/CD job using GitHub Actions.
+- CI/CD workflows using GitHub Actions (E2E + bug regressions).
 - A `docker-compose.yml` bonus setup to run tests independent of the host OS.
 - A release test plan for the `Create` and `Edit` features.
 
@@ -35,10 +35,12 @@ This repository includes:
 │   │   ├── base.page.ts
 │   │   └── stranger-list.page.ts
 │   ├── specs
-│   │   └── item-crud.e2e.ts
+│   │   ├── item-crud.e2e.ts
+│   │   └── bug-regressions.e2e.ts
 │   └── utils
 │       └── item-factory.ts
 ├── .github/workflows/e2e.yml
+├── .github/workflows/bugs.yml
 ├── Dockerfile
 ├── docker-compose.yml
 ├── package.json
@@ -269,44 +271,94 @@ This project already sets Appium capabilities to bypass hidden API policy failur
 
 ## Allure Report
 
-After running tests, generate and open an Allure report:
+Generate and open a local Allure report from this project root:
 
 ```bash
 npm run allure:generate
 npm run allure:open
 ```
 
-Alternative (generate and open in one step):
+Alternative (generate + open in one command):
 
 ```bash
 npm run allure:serve
 ```
 
+Important:
+
+- Do not open Allure `index.html` via `file://` (double click), because browser CORS policy will block JSON widgets.
+- Always open via `allure:open` / `allure:serve` or an HTTP server.
+
 ### Allure in CI (GitHub Actions)
 
-The pipeline also generates Allure artifacts automatically on each run:
+The workflows generate Allure artifacts automatically on each run:
 
-- `allure-results-<target>`
-- `allure-report-<target>` (HTML report)
+- E2E workflow:
+  - `allure-results-<target>`
+  - `allure-report-<target>` (HTML report)
+- Bug workflow:
+  - `allure-results-bugs-<target>`
+  - `allure-report-bugs-<target>` (HTML report)
 
 How to view it:
 
 1. Open the workflow run in the `Actions` tab.
-2. Download `allure-report-desktop` or `allure-report-mobile`.
-3. Open `index.html` from the extracted folder.
+2. Download `allure-report-desktop`/`allure-report-mobile` (E2E) or `allure-report-bugs-desktop`/`allure-report-bugs-mobile` (bugs workflow).
+3. Extract the artifact folder locally.
+4. Serve it via HTTP (example):
+
+```bash
+cd ~/Downloads/allure-report-desktop
+python3 -m http.server 8080
+```
+
+5. In a second terminal, open:
+
+```bash
+open http://localhost:8080
+```
+
+6. Stop the server with `Ctrl + C` when finished.
+
+### Interpreting Test Counts in Allure
+
+If you run desktop + mobile together, Allure can group both executions under the same test name.
+That is why you may see `3` test cases in the UI even when both targets ran.
+
+How to avoid mixed/accumulated results:
+
+```bash
+rm -rf allure-results allure-report
+```
+
+How to generate separate reports per target:
+
+```bash
+# Desktop report
+rm -rf allure-results allure-report
+npm run test:desktop
+npm run allure:generate
+mv allure-report allure-report-desktop
+
+# Mobile report
+rm -rf allure-results allure-report
+npm run test:mobile
+npm run allure:generate
+mv allure-report allure-report-mobile
+```
 
 ## CI/CD
 
-GitHub Actions workflow: `.github/workflows/e2e.yml`
+GitHub Actions workflows:
 
-- Triggers on push and pull request.
-- Supports manual execution with `workflow_dispatch`.
-- Runs tests in parallel matrix jobs:
-  - `desktop`
-  - `mobile` (Chrome mobile emulation)
-- Runs typecheck.
-- Runs the main automated CRUD suite on each target (desktop + mobile emulated).
-- Generates and uploads Allure artifacts automatically.
+- `.github/workflows/e2e.yml`
+  - Triggers on push and pull request (plus manual `workflow_dispatch`).
+  - Runs the automated CRUD E2E suite in matrix: `desktop`, `mobile`.
+  - Runs typecheck and uploads Allure artifacts.
+- `.github/workflows/bugs.yml`
+  - Manual trigger (`workflow_dispatch`).
+  - Runs bug-regression suite in matrix: `desktop`, `mobile`.
+  - Runs typecheck and uploads Allure artifacts.
 
 This satisfies the challenge requirement:
 

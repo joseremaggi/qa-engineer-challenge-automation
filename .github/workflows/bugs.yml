@@ -1,0 +1,56 @@
+name: Bug Regression Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bugs:
+    name: Bugs (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [desktop, mobile]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run bug regression tests
+        run: npm run test:bugs:${{ matrix.target }}
+
+      - name: Generate Allure HTML Report
+        if: always()
+        run: npm run allure:generate
+        continue-on-error: true
+
+      - name: Upload Allure Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-bugs-${{ matrix.target }}
+          path: allure-results
+          if-no-files-found: warn
+
+      - name: Upload Allure HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-bugs-${{ matrix.target }}
+          path: allure-report
+          if-no-files-found: warn
